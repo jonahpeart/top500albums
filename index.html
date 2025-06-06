@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mapping The Greatest Albums</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: "Public Sans", serif;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    .marker-cluster{
+      background: transparent;
+    }
+    .marker-cluster-small div {
+      width: 50px !important;
+      height: 50px !important;
+      line-height: 50px !important;
+    }
+    .marker-cluster-medium div {
+      width: 70px !important;
+      height: 70px !important;
+      line-height: 70px !important;
+    }
+    .marker-cluster-large div {
+      width: 90px !important;
+      height: 90px !important;
+      line-height: 90px !important;
+    }
+    .marker-cluster-large div, .marker-cluster-small div, .marker-cluster-medium div{
+      background-color: transparent;
+      background-image: url(cluster.png);
+      background-size: contain;
+      border-radius: 50px;
+      font-size: 1.5rem;
+      color: #ffffff;
+    }
+    .marker-cluster-large div:hover, .marker-cluster-small div:hover, .marker-cluster-medium div:hover {
+      background-color: transparent;
+      background-image: url(clusterhover.png);
+      background-size: contain;
+    }
+    .popupCustom .leaflet-popup-tip, .popupCustom .leaflet-popup-content-wrapper {
+      background-color: rgba(255, 255, 255, 0);
+      box-shadow: none;
+    }
+    .popupCustom .leaflet-popup-close-button {
+      display: none;
+    }
+    .dropbtn {
+      background-color: #e7e7e7;
+      color: rgb(0, 0, 0);
+      border: none;
+      padding: 5px;
+      font-size: .75rem;
+      cursor: pointer;
+      min-width: 100%;
+      align-self: center;
+      border-radius: 0 0 3px 0;
+      width: 200px;
+    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-content {
+      box-sizing: border-box;
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 200px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      border: 1px solid rgb(0, 0, 0) ;
+      border-top: none;
+      overflow-y: auto;
+      max-height: 10rem;
+      border-radius: 0 0 5px 5px;
+    }
+    .dropdown-content a {
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .dropdown-content::-webkit-scrollbar-thumb {
+      background-color: #c4c4c4;
+      border-radius: 5px;
+      cursor: pointer;
+      padding: 1px;
+    }
+    #studio-link{
+      color: rgb(0, 13, 127);
+    }
+    #studio-link:hover {
+      background-color: #c4c4c4;
+    }
+    #studio-nolink{
+      color: rgb(0, 0, 0);
+      cursor: default;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    .dropdown:hover .dropbtn{
+      background-color: #c4c4c4;
+    }
+    .source{
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .source:hover svg path{
+      fill: rgb(76, 59, 170);     
+    }
+    .popup {
+      position: absolute;
+      background-color: rgb(255, 255, 255);
+      display: flex;
+      align-items: center;
+      border-radius: 5px;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+      border: 1px solid black;
+    }
+    .cover {
+      width: 200px;
+      height: 200px;
+    }
+    .cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 3px 0 0 3px;
+    }
+    .album-info-container{
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 200px;
+      height: 200px;
+    }
+    .studio-source-flex{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px;
+    }
+    .album {
+      font-size: 1.25rem;
+      font-weight: 600;
+      font-style: italic;
+    }
+    .notes, .rank{
+      font-size: .75rem;
+    }
+    .info-container, .notes{
+      padding-left: 5px;
+    }
+    @media (max-width: 800px){
+      .popup {
+        display: flex;
+        flex-direction: column;
+      }
+      .album-info-container{
+      height: 100%;
+      gap: 1.5rem;
+    }
+    .cover img {
+      border-radius: 3px 3px 0 0;
+    }
+    .dropbtn{
+      border-radius: 0 0 3px 3px;
+    }
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+const bounds = [[-90, -180], [90, 180]];
+const map = L.map('map', {
+  maxBounds: bounds,
+  maxBoundsViscosity: 2.0,
+}).setView([35.505, -30], 3);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  subdomains: 'abcd',
+  noWrap: true,
+  minZoom: 3,
+  maxZoom: 20,
+}).addTo(map);
+
+const markers = L.markerClusterGroup({
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  zoomToBoundsOnClick: true,
+  spiderfyDistanceMultiplier: 2
+});
+
+let currentPopup = null;
+fetch('./data/official_top_500.geojson')
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return response.json();
+  })
+  .then(data => {
+    L.geoJSON(data, {
+      pointToLayer: function (feature, latlng) {
+        const defaultIcon = L.icon({
+          iconUrl: 'icon.png',
+          iconSize: [46, 46],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -45],
+        });
+        const hoverIcon = L.icon({
+          iconUrl: 'icon-hover.png',
+          iconSize: [46, 46],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -45],
+        });
+        const activeIcon = L.icon({
+          iconUrl: 'icon-clicked.png',
+          iconSize: [69, 69],
+          iconAnchor: [20, 43],
+          popupAnchor: [0, -45],
+        });
+        const marker = L.marker(latlng, { icon: defaultIcon });
+        marker.defaultIcon = defaultIcon;
+        marker.hoverIcon = hoverIcon;
+        marker.activeIcon = activeIcon;
+        return marker;
+      },
+      onEachFeature: function (feature, layer) {
+        const albumName = feature.properties.Album;
+        const studios = [];
+        data.features.forEach(entry => {
+          if (entry.properties.Album === albumName && entry.properties.Studio !== feature.properties.Studio) {
+            studios.push({
+              name: entry.properties.Studio,
+              coords: entry.geometry ? entry.geometry.coordinates : null,
+              location: entry.properties.Location,
+            });
+          }
+        });
+        let dropdown = '';
+        if (studios.length > 0) {
+          dropdown = `
+            <div class="dropdown">
+              <button class="dropbtn"><i class="fa fa-caret-down"></i> Other Studios</button>
+              <div class="dropdown-content">
+                ${studios.map(studio => {
+                  if (studio.coords) {
+                    return `<a id="studio-link" href="#" data-lat="${studio.coords[1]}" data-lng="${studio.coords[0]}">${studio.name}</a>`;
+                  } else {
+                    return `<a id="studio-nolink" href="#">${studio.name} - <small>(${studio.location})</small></a>`;
+                  }
+                }).join('')}
+              </div>
+            </div>`;
+        }
+        const customPopup = `
+          <div class="popup">
+            <div class="cover">
+              <img src="./Covers/${feature.properties.rank}.jpg" alt="${feature.properties.Album} cover">
+            </div>
+            <div class="album-info-container">
+              <div class="info-container">
+                <div class="album">${feature.properties.Album}</div>
+                <div class="artist">${feature.properties.Artist}, ${feature.properties.Year}</div>
+                <div class="rank">#${feature.properties.rank}</div>
+              </div>
+              <div class="studio-info-container">
+                <div class="studio-source-flex">
+                  <div class="studio">Studio: ${feature.properties.Studio}</div>
+                  <a class="source" href="${feature.properties.Source}" target="_blank">
+                    &#x1F6C8
+                  </a>
+                </div>
+                <div class="notes">${feature.properties.Notes || ""}</div>
+                <div class="other-studios">${dropdown}</div>
+              </div>
+            </div>
+          </div>`;
+        const popup = L.popup({
+          className: 'popupCustom',
+          closeButton: false,
+          autoClose: false,
+          closeOnClick: false,
+          offset: [60, -170],
+        }).setContent(customPopup);
+        layer.on('mouseover', () => {
+          if (!currentPopup || currentPopup.popup !== popup) {
+            layer.setIcon(layer.hoverIcon);
+          }
+        });
+        layer.on('mouseout', () => {
+          if (!currentPopup || currentPopup.popup !== popup) {
+            layer.setIcon(layer.defaultIcon);
+          }
+        });
+        layer.on('click', (e) => {
+          if (currentPopup) {
+            map.closePopup(currentPopup.popup);
+            if (currentPopup.layer) {
+              currentPopup.layer.setIcon(currentPopup.layer.defaultIcon);
+            }
+            currentPopup = null;
+          }
+          popup.setLatLng(e.latlng).openOn(map);
+          layer.setIcon(layer.activeIcon);
+          map.panTo(e.latlng, { animate: true });
+          currentPopup = { popup: popup, layer: layer };
+          const dropdownLinks = popup.getElement().querySelectorAll('.dropdown-content a');
+          dropdownLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+              event.preventDefault();
+              const lat = parseFloat(link.dataset.lat);
+              const lng = parseFloat(link.dataset.lng);
+              map.flyTo([lat, lng], 18, { duration: 2, easeLinearity: 0.25 });
+            });
+          });
+        });
+        markers.addLayer(layer);
+      }
+    });
+
+    map.addLayer(markers);
+  })
+  .catch(error => {
+    console.error('Error loading GeoJSON data:', error);
+  });
+map.on('click zoomstart dragstart', () => {
+  if (currentPopup) {
+    map.closePopup(currentPopup.popup);
+    if (currentPopup.layer) {
+      currentPopup.layer.setIcon(currentPopup.layer.defaultIcon);
+    }
+    currentPopup = null;
+  }
+});
+</script>
+</body>
+</html>
