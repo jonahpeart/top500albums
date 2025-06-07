@@ -323,7 +323,17 @@ fetch('./data/official_top_500.geojson')
           }
           popup.setLatLng(e.latlng).openOn(map);
           layer.setIcon(layer.activeIcon);
-          map.panTo(e.latlng, { animate: true });
+
+          if (window.innerWidth < 800) {
+            const point = map.project(e.latlng, map.getZoom());
+            point.x += window.innerWidth * 0.25;
+            point.y += window.innerHeight * 0.1;
+            const newLatLng = map.unproject(point, map.getZoom());
+            map.panTo(newLatLng, { animate: true });
+          } else {
+            map.panTo(e.latlng, { animate: true });
+          }
+
           currentPopup = { popup: popup, layer: layer };
           const dropdownLinks = popup.getElement().querySelectorAll('.dropdown-content a');
           dropdownLinks.forEach(link => {
