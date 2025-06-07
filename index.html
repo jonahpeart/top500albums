@@ -23,6 +23,7 @@
     #map {
       height: 100vh;
       width: 100%;
+      touch-action: none;
     }
     .marker-cluster{
       background: transparent;
@@ -204,7 +205,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   minZoom: 3,
   maxZoom: 20,
 }).addTo(map);
-map.doubleClickZoom.enable()
 
 const markers = L.markerClusterGroup({
   spiderfyOnMaxZoom: true,
