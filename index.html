@@ -165,31 +165,102 @@
     .info-container, .notes{
       padding-left: 5px;
     }
+    .material-symbols-outlined {
+      font-size: 1rem;
+      font-variation-settings:'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 16
+    }
+    .introduction-modal{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      width: 40%;
+      border: solid 1px black;
+      height: fit-content;
+      border-radius: 5px;
+      background-color: white;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+      padding: 2em;
+    }
+    .modal-title{
+      width: 100%;
+    }
+    .RollingStoneLogo img{
+      width: 100%;
+    }
+    .modal-window{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      z-index: 9999;
+      background-color: rgba(0, 0, 0, 0.466);
+      }
 
-.material-symbols-outlined {
-  font-size: 1rem;
-  font-variation-settings:'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 16
-}
+    .title-topleft{
+      font-size: 1.5rem;
+    }
+    .title-bottomright{
+      font-size: 1.5rem;
+      justify-self: end;
+    }
+
+    button {
+      background-color: white;
+      color: black;
+      border-radius: 5px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      padding: 15px 30px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      border: 1px solid black;
+      box-shadow: 0 0 0 0 black;
+    }
+    button:hover {
+      transform: translateY(-4px) translateX(-2px);
+      box-shadow: 1px 3px 0 0 black;
+    }
 
     @media (max-width: 800px){
+      .introduction-modal{
+        width: 80%;
+        padding: 1rem;
+      }
       .popup {
         display: flex;
         flex-direction: column;
       }
       .album-info-container{
-      height: 100%;
-      gap: 1.5rem;
-    }
-    .cover img {
-      border-radius: 3px 3px 0 0;
-    }
-    .dropbtn{
-      border-radius: 0 0 3px 3px;
-    }
+        height: 100%;
+        gap: 1.5rem;
+      }
+      .cover img {
+        border-radius: 3px 3px 0 0;
+      }
+      .dropbtn{
+        border-radius: 0 0 3px 3px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="modal-window">
+    <div class="introduction-modal">
+      <div class="modal-title">
+      <p class="title-topleft">Mapping The</p>
+      <a class="RollingStoneLogo" href="https://www.rollingstone.com/music/music-lists/best-albums-of-all-time-1062063/">
+        <img src="RollingStoneLogo.png" alt="">
+      </a>
+      <p class="title-bottomright">Top 500 Albums</p>
+      </div>
+      <p>Have you ever wondered where your favorite albums were recorded? You can now find out! Explore the map and see the spatial patterns of music. </p>
+
+      <button class="explore-map-btn">Explore Map</button>
+    </div>
+  </div>
 <div id="map"></div>
 <script>
 const bounds = [[-90, -180], [90, 180]];
@@ -212,7 +283,8 @@ const markers = L.markerClusterGroup({
   zoomToBoundsOnClick: true,
   spiderfyDistanceMultiplier: 2
 });
-
+const exploreMapBtn = document.querySelector('.explore-map-btn');
+const modalWindow = document.querySelector('.modal-window');
 let currentPopup = null;
 fetch('./data/official_top_500.geojson')
   .then(response => {
@@ -363,7 +435,14 @@ map.on('click zoomstart dragstart', () => {
     }
     currentPopup = null;
   }
+  
 });
+exploreMapBtn.addEventListener('click', () => {
+  modalWindow.style.display = 'none';
+});
+
+
+
 </script>
 </body>
 </html>
