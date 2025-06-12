@@ -22,8 +22,15 @@
     }
     #map {
       height: 100vh;
-      width: 100%;
+      width: 100vw;
       touch-action: none;
+    }
+    .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar{
+      border: 1px solid black;
+      box-sizing: border-box;
+    }
+    .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar{
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     }
     .marker-cluster{
       background: transparent;
@@ -97,10 +104,10 @@
       text-decoration: none;
       display: block;
     }
-    .dropdown-content::-webkit-scrollbar {
+    ::-webkit-scrollbar {
       width: 8px;
     }
-    .dropdown-content::-webkit-scrollbar-thumb {
+    ::-webkit-scrollbar-thumb {
       background-color: #c4c4c4;
       border-radius: 5px;
       cursor: pointer;
@@ -182,13 +189,28 @@
       box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
       padding: 2em;
     }
+    .information-modal{
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      width: 60%;
+      height: 85%;
+      overflow-y: scroll;
+      border: solid 1px black;
+      border-radius: 5px;
+      background-color: white;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+      padding: 2em;
+    }
     .modal-title{
       width: 100%;
     }
     .RollingStoneLogo img{
       width: 100%;
     }
-    .modal-window{
+    .intro-modal-window{
       display: flex;
       justify-content: center;
       align-items: center;
@@ -198,6 +220,16 @@
       z-index: 9999;
       background-color: rgba(0, 0, 0, 0.466);
       }
+    .info-modal-window{
+      display: none;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      z-index: 9999;
+      background-color: rgba(0, 0, 0, 0.200);
+      }
 
     .title-topleft{
       font-size: 1.5rem;
@@ -206,8 +238,10 @@
       font-size: 1.5rem;
       justify-self: end;
     }
-
-    button {
+    .intro-modal-text, .info-modal-text{
+      line-height: 1.5rem;
+    }
+    .explore-map-btn {
       background-color: white;
       color: black;
       border-radius: 5px;
@@ -219,16 +253,109 @@
       border: 1px solid black;
       box-shadow: 0 0 0 0 black;
     }
-    button:hover {
+    .explore-map-btn:hover {
       transform: translateY(-4px) translateX(-2px);
       box-shadow: 1px 3px 0 0 black;
     }
-
+    .info-button{
+      position: absolute;
+      z-index: 500;
+      width: 31px;
+      height: 31px;
+      top: 5rem;
+      margin-left: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center; 
+    }
+    .open-info-btn{
+      position: absolute;
+      font-size: 30px;
+      font-variation-settings:'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 16;
+      background-color: white;
+      border-radius: 25px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 500;
+      top: 5rem;
+      left: 10px;
+      border: 1px solid black;
+      cursor: pointer;
+      transition: font-variation-settings 0.1s ease;
+    }
+    .open-info-btn:hover{
+      font-variation-settings:'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 16;
+    }
+    .info-gif{
+      width: 100%;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+    }
+    details {
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      padding: 0.5em 0.5em 0;
+      width: 100%;
+    }
+    summary {
+      font-weight: bold;
+      margin: -0.5em -0.5em 0;
+      padding: 0.5em;
+      cursor: pointer;
+    }
+    details[open] {
+      padding: 0.5em;
+    }
+    details[open] summary {
+      border-bottom: 1px solid #aaa;
+      margin-bottom: 0.5em;
+    }
+    #unknown-albums{
+      display: flex;
+      flex-direction: column;
+    }
+    #unknown-popup{
+      position: relative;
+      border: none;
+      box-shadow: none;
+      display: flex;
+      border-bottom: 1px #aaa solid;
+      padding: .5rem 0;
+      align-items: center;
+    }
+    .unknown-location-cover{
+      min-width: 100px;
+      height: 100px;
+    }
+    .unknown-location-cover img{
+      width: 100%;
+      height: 100%;
+    }
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .social-links a img {
+      width: 32px;
+      height: 32px;
+      transition: transform 0.1s ease;
+    }
+    .social-links a:hover img {
+      transform: scale(1.1);
+    }
+    .close{
+      position: absolute;
+      top: 8%;
+      right: 20.5%;
+      padding: 5px;
+      cursor: pointer;
+      align-self: flex-end;
+      z-index: 999;
+    }
+    .close:hover svg path{
+      stroke: black;
+    }
     @media (max-width: 800px){
-      .introduction-modal{
-        width: 80%;
-        padding: 1rem;
-      }
       .popup {
         display: flex;
         flex-direction: column;
@@ -243,24 +370,57 @@
       .dropbtn{
         border-radius: 0 0 3px 3px;
       }
+      .introduction-modal, .information-modal{
+        width: 90%;
+        padding: 1rem;
+      }
+      .close{
+        right: 5.5%;
+      }
     }
+
   </style>
 </head>
 <body>
-  <div class="modal-window">
+  <div class="intro-modal-window">
     <div class="introduction-modal">
       <div class="modal-title">
-      <p class="title-topleft">Mapping The</p>
-      <a class="RollingStoneLogo" href="https://www.rollingstone.com/music/music-lists/best-albums-of-all-time-1062063/">
-        <img src="RollingStoneLogo.png" alt="">
-      </a>
-      <p class="title-bottomright">Top 500 Albums</p>
+        <p class="title-topleft">Mapping The</p>
+        <a class="RollingStoneLogo" href="https://www.rollingstone.com/music/music-lists/best-albums-of-all-time-1062063/">
+          <img src="RollingStoneLogo.png" alt="">
+        </a>
+        <p class="title-bottomright">Top 500 Albums</p>
       </div>
-      <p>Have you ever wondered where your favorite albums were recorded? You can now find out! Explore the map and see the spatial patterns of music. </p>
-
+      <p class="intro-modal-text">Have you ever wondered where your favorite albums were recorded? You can now find out! Explore the map and see the spatial patterns of music. Click the info button in the top left for more information. </p>
       <button class="explore-map-btn">Explore Map</button>
     </div>
   </div>
+  <div class="info-modal-window">
+    <span class="close"><svg width="28" height="28" viewbox="0 0 40 40"><path d="M 10,10 L 30,30 M 30,10 L 10,30" stroke="#444444" stroke-width="3" /></svg></span>
+    <div class="information-modal">
+      <h1>Information</h1>
+      <p class="info-modal-text"> Albums can be recorded at many studios. Each marker on the map marks one studio that a spcific album was recorded (or paritally recorded). To see the list of other studios an album was recorded hover over the "other studios" dropdown menu to see a list. Some studios locations are private or there is not enough information to properly geocode it. In the dropdown menu studios that appear in blue are known and you can click on them to be taken to its location. Studios that are black are unknonw and, if applicaple, a rough location of where that studio is in parentheses. Note that albmus can be mixed and mastered at different locations. These locations were not included</p>
+      <img class="info-gif" src="info-gif.gif" alt="Simple tutorial on how to navigate the map and its markers">
+      <p class="info-modal-text">Click the <span class="material-symbols-outlined">info</span> in the bottom right of each markers popup to see the source of the studio locations. Many of the sources were from linter notes or credits that were provided by Discogs. In addition, Wikipedia often provides a list of studios. In the case of wikipedia, the soruces of the page are often consulted to see if the information is legitimate. In certain cases, such as Bob Dylan or The Beatles albums, a book was used as the source. Keep in mind that the information is not exhaustive and not all studio locations are verified and are subject to potential errors. Though I tried my best to diligantly research and locate these studios.</p>
+      <p class="info-modal-text">In addition, many there a few albums where no studio's location is unknown, in this case they do not appear on the map.</p>
+      <details class="unknown-albums-list">
+      <summary>Here is a list of those studios</summary>
+        <div id="unknown-albums">
+        </details>
+        <p class="info-modal-text">This project is based on The Rolling Stone's Top 500 Albums of All Time list. Full credit is given to Rolling Stone for curating the original list. Additional thanks to Discogs for their comprehensive database of album and recording information and Leaflet for providing a free, open-source framework for interactive web mapping. It truly is an amazing library. This map was created for educational and informational purposes only. All rights to the album data and associated information remain with their respective owners.</p>
+        <p class="info-modal-text">Created by Jonah Peart</p>
+      <div class="social-links">
+        <a href="https://github.com/jonahpeart" target="_blank" aria-label="GitHub">
+          <img src="./github-icon.svg" alt="GitHub">
+        </a>
+        <a href="https://www.linkedin.com/in/jonahpeart" target="_blank" aria-label="LinkedIn">
+          <img src="./linkedin-icon.svg" alt="LinkedIn">
+        </a>
+      </div>
+    </div>
+  </div>
+
+<span class="open-info-btn material-symbols-outlined">info</span>
 <div id="map"></div>
 <script>
 const bounds = [[-90, -180], [90, 180]];
@@ -268,7 +428,6 @@ const map = L.map('map', {
   maxBounds: bounds,
   maxBoundsViscosity: 2.0,
 }).setView([35.505, -30], 3);
-
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
   subdomains: 'abcd',
@@ -276,7 +435,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   minZoom: 3,
   maxZoom: 20,
 }).addTo(map);
-
 const markers = L.markerClusterGroup({
   spiderfyOnMaxZoom: true,
   showCoverageOnHover: false,
@@ -284,7 +442,10 @@ const markers = L.markerClusterGroup({
   spiderfyDistanceMultiplier: 2
 });
 const exploreMapBtn = document.querySelector('.explore-map-btn');
-const modalWindow = document.querySelector('.modal-window');
+const introModalWindow = document.querySelector('.intro-modal-window');
+const infoCloseBtn = document.querySelector('.close');
+const infoModalWindow = document.querySelector('.info-modal-window');
+const openInfoBtn = document.querySelector('.open-info-btn')
 let currentPopup = null;
 fetch('./data/official_top_500.geojson')
   .then(response => {
@@ -292,6 +453,37 @@ fetch('./data/official_top_500.geojson')
     return response.json();
   })
   .then(data => {
+    const unknownAlbumsSet = new Set();
+    data.features.forEach(feature => {
+      const noLocation = feature.properties["No Known Location"];
+      if (noLocation && noLocation.toString().toLowerCase() === "yes") {
+        unknownAlbumsSet.add(
+          `
+            <div id="unknown-popup" class="">
+              <div class="unknown-location-cover">
+                <img src="./Covers/${feature.properties.rank}.jpg" alt="${feature.properties.Album} cover">
+              </div>
+              <div class="info-container">
+                <div class=""><i><b>${feature.properties.Album}</b></i>, ${feature.properties.Artist}, ${feature.properties.Year}</div>
+                <div class="rank">#${feature.properties.rank}</div>
+                <div class="">Studio: ${feature.properties.Studio}</div>
+                <div class="">${feature.properties.Location || ""}</div>
+                <a class="" href="${feature.properties.Source}" target="_blank">
+                <span class="material-symbols-outlined">info</span>
+                </a>
+              </div>
+            </div>
+          `
+        );
+      }
+    });
+    const unknownAlbumsList = document.getElementById("unknown-albums");
+    unknownAlbumsSet.forEach(album => {
+      const div = document.createElement("div");
+      div.innerHTML = album;
+      unknownAlbumsList.appendChild(div);
+});
+
     L.geoJSON(data, {
       pointToLayer: function (feature, latlng) {
         const defaultIcon = L.icon({
@@ -421,7 +613,6 @@ fetch('./data/official_top_500.geojson')
         markers.addLayer(layer);
       }
     });
-
     map.addLayer(markers);
   })
   .catch(error => {
@@ -435,14 +626,16 @@ map.on('click zoomstart dragstart', () => {
     }
     currentPopup = null;
   }
-  
 });
 exploreMapBtn.addEventListener('click', () => {
-  modalWindow.style.display = 'none';
+  introModalWindow.style.display = 'none';
 });
-
-
-
+openInfoBtn.addEventListener('click', () => {
+  infoModalWindow.style.display = 'flex';
+});
+infoCloseBtn.addEventListener('click', () => {
+  infoModalWindow.style.display = 'none';
+});
 </script>
 </body>
 </html>
