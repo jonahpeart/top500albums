@@ -22,19 +22,18 @@
     }
     body{
       height: 100dvh;
+      overflow-y: hidden;
     }
     #map {
       height: 100%;
       width: 100vw;
-      touch-action: none;
     }
-
-    .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar{
+    .leaflet-touch .leaflet-control-attribution,
+    .leaflet-touch .leaflet-control-layers,
+    .leaflet-touch .leaflet-bar {
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
       border: 1px solid black;
       box-sizing: border-box;
-    }
-    .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar{
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     }
     .marker-cluster{
       background: transparent;
@@ -117,15 +116,10 @@
       cursor: pointer;
       padding: 1px;
     }
-    #studio-link{
-      color: rgb(0, 13, 127);
-    }
-    #studio-link:hover {
-      background-color: #c4c4c4;
-    }
-    #studio-nolink{
+    .studio-nolink{
       color: rgb(0, 0, 0);
       cursor: default;
+      text-decoration: none;
     }
     .dropdown:hover .dropdown-content {
       display: block;
@@ -172,6 +166,9 @@
     }
     .notes, .rank{
       font-size: .75rem;
+    }
+    .studio-dropdown-item:hover{
+      background-color: #e4e4e4;
     }
     .info-container, .notes{
       padding-left: 5px;
@@ -317,7 +314,8 @@
       display: flex;
       flex-direction: column;
     }
-    #unknown-popup{
+    .unknown-popup{
+    display: flex;
       position: relative;
       border: none;
       box-shadow: none;
@@ -428,10 +426,7 @@
 <div id="map"></div>
 <script>
 const bounds = [[-90, -180], [90, 180]];
-const map = L.map('map', {
-  maxBounds: bounds,
-  maxBoundsViscosity: 2.0,
-}).setView([35.505, -30], 3);
+const map = L.map('map', { maxBounds: bounds, maxBoundsViscosity: 2.0 }).setView([35.505, -30], 3);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
   subdomains: 'abcd',
@@ -445,12 +440,14 @@ const markers = L.markerClusterGroup({
   zoomToBoundsOnClick: true,
   spiderfyDistanceMultiplier: 2
 });
-const exploreMapBtn = document.querySelector('.explore-map-btn');
 const introModalWindow = document.querySelector('.intro-modal-window');
-const infoCloseBtn = document.querySelector('.close');
 const infoModalWindow = document.querySelector('.info-modal-window');
-const openInfoBtn = document.querySelector('.open-info-btn')
-let currentPopup = null;
+const currentPopup = { popup: null, layer: null };
+const createIcon = (url, size, anchor, popupAnchor) =>
+  L.icon({ iconUrl: url, iconSize: size, iconAnchor: anchor, popupAnchor: popupAnchor });
+const defaultIcon = createIcon('icon.png', [46, 46], [20, 20], [0, -45]);
+const hoverIcon = createIcon('icon-hover.png', [46, 46], [20, 20], [0, -45]);
+const activeIcon = createIcon('icon-clicked.png', [69, 69], [20, 43], [0, -45]);
 fetch('./data/official_top_500.geojson')
   .then(response => {
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -458,90 +455,66 @@ fetch('./data/official_top_500.geojson')
   })
   .then(data => {
     const unknownAlbumsSet = new Set();
+    const unknownAlbumsList = document.getElementById("unknown-albums");
+
+    const albumStudiosMap = data.features.reduce((acc, feature) => {
+      const album = feature.properties.Album;
+      if (!acc[album]) acc[album] = [];
+      acc[album].push(feature);
+      return acc;
+    }, {});
     data.features.forEach(feature => {
-      const noLocation = feature.properties["No Known Location"];
-      if (noLocation && noLocation.toString().toLowerCase() === "yes") {
-        unknownAlbumsSet.add(
-          `
-            <div id="unknown-popup" class="">
-              <div class="unknown-location-cover">
-                <img src="./Covers/${feature.properties.rank}.jpg" alt="${feature.properties.Album} cover">
-              </div>
-              <div class="info-container">
-                <div class=""><i><b>${feature.properties.Album}</b></i>, ${feature.properties.Artist}, ${feature.properties.Year}</div>
-                <div class="rank">#${feature.properties.rank}</div>
-                <div class="">Studio: ${feature.properties.Studio}</div>
-                <div class="">${feature.properties.Location || ""}</div>
-                <a class="" href="${feature.properties.Source}" target="_blank">
-                <span class="material-symbols-outlined">info</span>
-                </a>
-              </div>
+      if (feature.properties["No Known Location"]?.toString().toLowerCase() === "yes") {
+        unknownAlbumsSet.add(`
+          <div class="unknown-popup">
+            <div class="unknown-location-cover">
+              <img src="./Covers/${feature.properties.rank}.jpg" alt="${feature.properties.Album} cover">
             </div>
-          `
-        );
+            <div class="info-container">
+              <div><i><b>${feature.properties.Album}</b></i>, ${feature.properties.Artist}, ${feature.properties.Year}</div>
+              <div class="rank">#${feature.properties.rank}</div>
+              <div>Studio: ${feature.properties.Studio}</div>
+              <div>${feature.properties.Location || ""}</div>
+              <a href="${feature.properties.Source}" target="_blank">
+                <span class="material-symbols-outlined">info</span>
+              </a>
+            </div>
+          </div>
+        `);
       }
     });
-    const unknownAlbumsList = document.getElementById("unknown-albums");
     unknownAlbumsSet.forEach(album => {
       const div = document.createElement("div");
       div.innerHTML = album;
       unknownAlbumsList.appendChild(div);
-});
-
+    });
     L.geoJSON(data, {
-      pointToLayer: function (feature, latlng) {
-        const defaultIcon = L.icon({
-          iconUrl: 'icon.png',
-          iconSize: [46, 46],
-          iconAnchor: [20, 20],
-          popupAnchor: [0, -45],
-        });
-        const hoverIcon = L.icon({
-          iconUrl: 'icon-hover.png',
-          iconSize: [46, 46],
-          iconAnchor: [20, 20],
-          popupAnchor: [0, -45],
-        });
-        const activeIcon = L.icon({
-          iconUrl: 'icon-clicked.png',
-          iconSize: [69, 69],
-          iconAnchor: [20, 43],
-          popupAnchor: [0, -45],
-        });
+      pointToLayer: (feature, latlng) => {
         const marker = L.marker(latlng, { icon: defaultIcon });
         marker.defaultIcon = defaultIcon;
         marker.hoverIcon = hoverIcon;
         marker.activeIcon = activeIcon;
         return marker;
       },
-      onEachFeature: function (feature, layer) {
+      onEachFeature: (feature, layer) => {
         const albumName = feature.properties.Album;
-        const studios = [];
-        data.features.forEach(entry => {
-          if (entry.properties.Album === albumName && entry.properties.Studio !== feature.properties.Studio) {
-            studios.push({
-              name: entry.properties.Studio,
-              coords: entry.geometry ? entry.geometry.coordinates : null,
-              location: entry.properties.Location,
-            });
-          }
-        });
-        let dropdown = '';
-        if (studios.length > 0) {
-          dropdown = `
-            <div class="dropdown">
-              <button class="dropbtn"><i class="fa fa-caret-down"></i> Other Studios</button>
-              <div class="dropdown-content">
-                ${studios.map(studio => {
-                  if (studio.coords) {
-                    return `<a id="studio-link" href="#" data-lat="${studio.coords[1]}" data-lng="${studio.coords[0]}">${studio.name}</a>`;
-                  } else {
-                    return `<a id="studio-nolink" href="#">${studio.name} - <small>(${studio.location})</small></a>`;
-                  }
-                }).join('')}
-              </div>
-            </div>`;
-        }
+        const studios = (albumStudiosMap[albumName] || [])
+          .filter(entry => entry.properties.Studio !== feature.properties.Studio)
+          .map(entry => ({
+            name: entry.properties.Studio,
+            coords: entry.geometry?.coordinates,
+            location: entry.properties.Location
+          }));
+        const dropdown = studios.length
+          ? `<div class="dropdown">
+               <button class="dropbtn"><i class="fa fa-caret-down"></i> Other Studios</button>
+               <div class="dropdown-content">
+                 ${studios.map(studio => studio.coords
+                     ? `<a class="studio-dropdown-item" href="#" data-lat="${studio.coords[1]}" data-lng="${studio.coords[0]}">${studio.name}</a>`
+                     : `<a style="color: black;" href="#">${studio.name} - <small>(${studio.location})</small></a>`
+                 ).join('')}
+               </div>
+             </div>` : '';
         const customPopup = `
           <div class="popup">
             <div class="cover">
@@ -573,44 +546,35 @@ fetch('./data/official_top_500.geojson')
           offset: [60, -170],
         }).setContent(customPopup);
         layer.on('mouseover', () => {
-          if (!currentPopup || currentPopup.popup !== popup) {
-            layer.setIcon(layer.hoverIcon);
-          }
+          if (currentPopup.popup !== popup) layer.setIcon(hoverIcon);
         });
         layer.on('mouseout', () => {
-          if (!currentPopup || currentPopup.popup !== popup) {
-            layer.setIcon(layer.defaultIcon);
-          }
+          if (currentPopup.popup !== popup) layer.setIcon(defaultIcon);
         });
         layer.on('click', (e) => {
-          if (currentPopup) {
+          if (currentPopup.popup) {
             map.closePopup(currentPopup.popup);
-            if (currentPopup.layer) {
-              currentPopup.layer.setIcon(currentPopup.layer.defaultIcon);
-            }
-            currentPopup = null;
+            currentPopup.layer.setIcon(defaultIcon);
+            currentPopup.popup = null;
           }
           popup.setLatLng(e.latlng).openOn(map);
-          layer.setIcon(layer.activeIcon);
+          layer.setIcon(activeIcon);
+          const offset = window.innerWidth < 800
+            ? { x: window.innerWidth * 0.25, y: window.innerHeight * 0.1 }
+            : { x: 0, y: 0 };
 
-          if (window.innerWidth < 800) {
+          if (offset.x || offset.y) {
             const point = map.project(e.latlng, map.getZoom());
-            point.x += window.innerWidth * 0.25;
-            point.y += window.innerHeight * 0.1;
-            const newLatLng = map.unproject(point, map.getZoom());
-            map.panTo(newLatLng, { animate: true });
+            map.panTo(map.unproject({ x: point.x + offset.x, y: point.y + offset.y }, map.getZoom()), { animate: true });
           } else {
             map.panTo(e.latlng, { animate: true });
           }
-
-          currentPopup = { popup: popup, layer: layer };
-          const dropdownLinks = popup.getElement().querySelectorAll('.dropdown-content a');
-          dropdownLinks.forEach(link => {
-            link.addEventListener('click', (event) => {
-              event.preventDefault();
-              const lat = parseFloat(link.dataset.lat);
-              const lng = parseFloat(link.dataset.lng);
-              map.flyTo([lat, lng], 18, { duration: 2, easeLinearity: 0.25 });
+          currentPopup.popup = popup;
+          currentPopup.layer = layer;
+          popup.getElement().querySelectorAll('.dropdown-content a[data-lat]').forEach(link => {
+            link.addEventListener('click', ev => {
+              ev.preventDefault();
+              map.flyTo([parseFloat(link.dataset.lat), parseFloat(link.dataset.lng)], 18, { duration: 2 });
             });
           });
         });
@@ -619,27 +583,18 @@ fetch('./data/official_top_500.geojson')
     });
     map.addLayer(markers);
   })
-  .catch(error => {
-    console.error('Error loading GeoJSON data:', error);
-  });
+  .catch(console.error);
 map.on('click zoomstart dragstart', () => {
-  if (currentPopup) {
+  if (currentPopup.popup) {
     map.closePopup(currentPopup.popup);
-    if (currentPopup.layer) {
-      currentPopup.layer.setIcon(currentPopup.layer.defaultIcon);
-    }
-    currentPopup = null;
+    currentPopup.layer.setIcon(defaultIcon);
+    currentPopup.popup = null;
   }
 });
-exploreMapBtn.addEventListener('click', () => {
-  introModalWindow.style.display = 'none';
-});
-openInfoBtn.addEventListener('click', () => {
-  infoModalWindow.style.display = 'flex';
-});
-infoCloseBtn.addEventListener('click', () => {
-  infoModalWindow.style.display = 'none';
-});
+const toggleModal = (el, state) => el.style.display = state;
+document.querySelector('.explore-map-btn').addEventListener('click', () => toggleModal(introModalWindow, 'none'));
+document.querySelector('.open-info-btn').addEventListener('click', () => toggleModal(infoModalWindow, 'flex'));
+document.querySelector('.close').addEventListener('click', () => toggleModal(infoModalWindow, 'none'));
 </script>
 </body>
 </html>
